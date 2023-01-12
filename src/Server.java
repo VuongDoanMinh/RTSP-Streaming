@@ -529,12 +529,10 @@ public class Server extends JFrame implements ActionListener, ChangeListener {
     VideoMetadata meta = Server.getVideoMetadata(VideoFileName);
 
     // Write the body first so we can get the size later
-    rtspBody.write("v=0" + CRLF);
-    rtspBody.write("o=Me 2808844564 2808844564 IN IP4 localhost"+ CRLF);
-    rtspBody.write("s=" + CRLF);
-    rtspBody.write("c=IN IP4 localhost" + CRLF);
-    rtspBody.write("m=video 2000 RTP/AVP 26" + CRLF);
-    rtspBody.write("a=rtpmap:26 JPEG/90000"+ CRLF);
+
+    rtspBody.write("m=video"+"RTSP_dest_Port"+" RTP/AVP "+MJPEG_TYPE+CRLF);
+    rtspBody.write("a=control:streamid="+RTSP_ID+CRLF);
+    rtspBody.write("a=mimetype:string;\"video/MJPEG\""+CRLF);
 
     rtspHeader.write("Content-Base: " + "rtsp://localhost:3333/htw.mjpeg"+ CRLF);
     rtspHeader.write("Content-Type: " + "application/sdp" + CRLF);

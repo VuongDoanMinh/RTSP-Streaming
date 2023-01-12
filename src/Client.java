@@ -272,9 +272,6 @@ public class Client {
           state = READY;
           statusLabel.setText(Integer.toString(READY));
           logger.log(Level.INFO, "New RTSP state: READY\n");
-          // state = ....
-          // statusLabel
-          // logger.log(Level.INFO, "New RTSP state: \n");
         }
       } // else if state != INIT then do nothing
     }
@@ -483,45 +480,51 @@ public class Client {
       }
     }
 
-      //TASK complete the statistics
-    private void setStatistics(ReceptionStatistic rs) {
-      DecimalFormat df = new DecimalFormat("###.###");
-      float ratio = 0f;
-      float recoveredPercent = 0f;
-      if (fec.getNrNotCorrected() != 0)
-      {
-        ratio = (float) fec.getNrCorrected() / fec.getNrNotCorrected();
-      }
+      //TASK_x complete the statistics
 
-      if (fec.getPlayCounter() != 0)
-      {
-        recoveredPercent = ((float) fec.getNrFramesLost() / fec.getPlayCounter()) * 100;
-      }
+private void setStatistics(ReceptionStatistic rs) {
+  DecimalFormat df = new DecimalFormat("###.###");
+  float ratio=0;
 
-      pufferLabel.setText(
+  if(rs.playbackIndex == 0)
+    ratio=0 ;
+else
+  ratio=((float)rs.packetsLost/(float)rs.playbackIndex)*100;
+
+pufferLabel.setText(
           "Puffer: "
-              + ""  //
-              + " aktuelle Nr. / Summe empf.: "
-              + fec.getSeqNr() + " / " + fec.getNrReceived()
-              + "");
-      statsLabel.setText(
+                  + (rs.latestSequenceNumber - rs.playbackIndex)
+                  + " Bytes //"  //
+                  + " aktuelle Nr. / Summe empf.: "
+                  + rs.latestSequenceNumber
+                  + " / "
+                  + rs.receivedPackets);
+  statsLabel.setText(
           "<html>Abspielzähler / verlorene Medienpakete // Bilder / verloren: "
-              + fec.getPlayCounter() + " / " + fec.getNrLost()
-              + " // "
-              + fec.getNrFramesRequested() + " / " + fec.getNrFramesLost()
-              + "<p/>"
-              + "</html>");
-      fecLabel.setText(
+                  + rs.playbackIndex + " / "
+                  + rs.packetsLost + " // "
+                  + rs.requestedFrames  + " / "
+                  + rs.framesLost
+                  + " Ratio: "
+                  + ratio + "%"
+                  + "<p/>"
+                  + "</html>");
+
+  if((rs.packetsLost + rs.receivedPackets) == 0)
+    ratio=0 ;
+  else
+    ratio=((float)rs.correctedPackets/(float)(rs.packetsLost +(float)rs.receivedPackets))* 100;
+
+  fecLabel.setText(
           "FEC: korrigiert / nicht korrigiert: "
-              + fec.getNrCorrected()
-              + " / "
-              + fec.getNrNotCorrected()
-              + "  Ratio: "
-              + df.format(ratio)
-              + "  Restfehler: "
-              + df.format(recoveredPercent) + " %");
-    }
-  }
+                  + ""
+                  + rs.correctedPackets + " / "
+                  + rs.notCorrectedPackets
+                  + ""
+                  + "  Ratio: "
+                  +ratio + "%");
+}
+}
 
   /**
    * Parse Server Response Handles Session, Public, Content-Base - attribute
