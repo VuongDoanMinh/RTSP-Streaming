@@ -49,6 +49,8 @@ public class Client {
   // ----------------
   DatagramSocket RTPsocket; // socket to be used to send and receive UDP packets
   //DatagramSocket FECsocket; // socket to be used to send and receive UDP packets for FEC
+  FecHandler fec;
+
   private RtpHandler rtpHandler = null;
   static int RTP_RCV_PORT = 25000; // port where the client will receive the RTP packets
   // static int FEC_RCV_PORT = 25002; // port where the client will receive the RTP packets
@@ -238,6 +240,9 @@ public class Client {
           logger.log(Level.FINE, "Socket receive buffer: " + RTPsocket.getReceiveBufferSize());
 
           rtpHandler.setFecDecryptionEnabled(checkBoxFec.isSelected());
+          
+          //  FEC-Handler
+          fec = new FecHandler( checkBoxFec.isSelected() );
           // Init the play timer
           int timerDelay = FRAME_RATE; // use default delay
           if (framerate != 0) { // if information available, use that
@@ -419,6 +424,7 @@ public class Client {
         RTPsocket.receive(rcvDp); // receive the DP from the socket:
 
         rtpHandler.processRtpPacket(rcvDp.getData(), rcvDp.getLength());
+        
       } catch (InterruptedIOException iioe) {
         // System.out.println("Nothing to read");
       } catch (IOException ioe) {
@@ -437,6 +443,7 @@ public class Client {
       byte[] payload;
 
       // check buffer size and start if filled
+      
       int puffer = rs.latestSequenceNumber - rs.playbackIndex;
       progressBuffer.setValue(puffer);
       progressPosition.setValue(rs.playbackIndex);
@@ -445,7 +452,7 @@ public class Client {
         iteration = 0;
       }
       iteration++;
-
+      
       // check for beginning of display JPEGs
       if ((puffer < jitterBufferSize) && !videoStart) {
         return;
@@ -479,26 +486,40 @@ public class Client {
       //TASK complete the statistics
     private void setStatistics(ReceptionStatistic rs) {
       DecimalFormat df = new DecimalFormat("###.###");
+      float ratio = 0f;
+      float recoveredPercent = 0f;
+      if (fec.getNrNotCorrected() != 0)
+      {
+        ratio = (float) fec.getNrCorrected() / fec.getNrNotCorrected();
+      }
+
+      if (fec.getPlayCounter() != 0)
+      {
+        recoveredPercent = ((float) fec.getNrFramesLost() / fec.getPlayCounter()) * 100;
+      }
+
       pufferLabel.setText(
           "Puffer: "
               + ""  //
               + " aktuelle Nr. / Summe empf.: "
-              + " / "
+              + fec.getSeqNr() + " / " + fec.getNrReceived()
               + "");
       statsLabel.setText(
           "<html>Abspielzähler / verlorene Medienpakete // Bilder / verloren: "
-              + ""
-              + " / "
-              + ""
+              + fec.getPlayCounter() + " / " + fec.getNrLost()
+              + " // "
+              + fec.getNrFramesRequested() + " / " + fec.getNrFramesLost()
               + "<p/>"
               + "</html>");
       fecLabel.setText(
           "FEC: korrigiert / nicht korrigiert: "
-              + ""
+              + fec.getNrCorrected()
               + " / "
-              + ""
+              + fec.getNrNotCorrected()
               + "  Ratio: "
-              + "");
+              + df.format(ratio)
+              + "  Restfehler: "
+              + df.format(recoveredPercent) + " %");
     }
   }
 

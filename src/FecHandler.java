@@ -19,6 +19,7 @@ public class FecHandler {
   FECpacket fec;
 
   // Receiver
+  HashMap<Integer, RTPpacket> rtpStack = new HashMap<>(); // list of media packets
   HashMap<Integer, FECpacket> fecStack = new HashMap<>(); // list of fec packets
   HashMap<Integer, Integer> fecNr = new HashMap<>(); // Snr of corresponding fec packet
   HashMap<Integer, List<Integer>> fecList = new HashMap<>(); // list of involved media packets
@@ -156,8 +157,25 @@ public class FecHandler {
    * @return true if possible
    */
   public boolean checkCorrection(int nr, HashMap<Integer, RTPpacket> mediaPackets) {
-    //TASK complete this method!
-    return false;
+    //TASK_x complete this method!
+
+    if (fecNr.get(nr) == null) return false;
+    int fecPacket = fecNr.get(nr);
+ 
+     int temp = 0;
+     List<Integer> list = fecList.get(nr);
+ 
+ 
+     if (list == null) return false;
+ 
+     for (Integer i : list){
+       if (rtpStack.get(i) == null){
+         temp++;
+         if (temp > 1) return false;
+       }
+     }
+
+    return true;
   }
 
   /**
@@ -167,7 +185,21 @@ public class FecHandler {
    * @return RTP packet
    */
   public RTPpacket correctRtp(int nr, HashMap<Integer, RTPpacket> mediaPackets) {
-    //TASK complete this method!
+    //TASK_x complete this method!
+
+    FECpacket fec = fecStack.get(fecNr.get(nr));
+
+
+    List<Integer> list = fecList.get(nr);
+
+
+
+    for (Integer i : list){
+      if (i != nr) {
+        fec.addRtp(rtpStack.get(i));
+      }
+    }
+
     return fec.getLostRtp(nr);
   }
 

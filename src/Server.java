@@ -515,14 +515,14 @@ public class Server extends JFrame implements ActionListener, ChangeListener {
   /** Creates a OPTIONS response string
    * @return  Options string, starting with: Public: ...
    */
-  //TASK Complete the OPTIONS response
+  //TASK_x Complete the OPTIONS response
   private String options() {
     return "Public: DESCRIBE,SETUP,TEARDOWN,PLAY,PAUSE" + CRLF;
   }
 
 
   /** Creates a DESCRIBE response string in SDP format for current media */
-  //TASK Complete the DESCRIBE response
+  //TASK_x Complete the DESCRIBE response
   private String describe() {
     StringWriter rtspHeader = new StringWriter();
     StringWriter rtspBody = new StringWriter();
